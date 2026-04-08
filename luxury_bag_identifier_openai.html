@@ -1,384 +1,1319 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Luxury Bag Identifier — GPT-4o</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>MYNE — Luxury Bag Identifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&display=swap"
+    rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #111; color: #f0f0f0; min-height: 100vh; display: flex; justify-content: center; padding: 2rem 1rem; }
-    .container { width: 100%; max-width: 600px; }
-    h1 { font-size: 18px; font-weight: 500; margin-bottom: 1.5rem; color: #fff; letter-spacing: 0.02em; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
 
-    .upload-zone { border: 1.5px dashed #444; border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; background: #1a1a1a; transition: background 0.2s; }
-    .upload-zone:hover { background: #222; }
-    .preview-img { width: 100%; max-height: 280px; object-fit: contain; border-radius: 8px; margin-bottom: 1rem; }
+    :root {
+      --bg: #0d0d0b;
+      --surface: #141412;
+      --surface2: #1c1c19;
+      --border: #2a2a26;
+      --border2: #333330;
+      --text: #e8e6df;
+      --text2: #9a9890;
+      --text3: #5a5852;
+      --gold: #c9a96e;
+      --gold2: #8a6d3f;
+      --green: #6aad7a;
+      --red: #c47a6a;
+    }
 
-    .card { background: #1a1a1a; border: 0.5px solid #333; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 12px; }
-    .match-card { cursor: pointer; transition: border-color 0.15s; display: flex; gap: 12px; align-items: flex-start; }
-    .match-card:hover { border-color: #666; }
-    .match-card.selected { border: 2px solid #4a9eff; }
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem 4rem
+    }
 
-    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
-    .badge-high { background: #1a3a1a; color: #6dbf6d; }
-    .badge-med  { background: #3a2a0a; color: #e6a83a; }
+    .container {
+      width: 100%;
+      max-width: 640px
+    }
 
-    .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-    .metric { background: #1a1a1a; border-radius: 8px; padding: 1rem; border: 0.5px solid #2a2a2a; }
-    .metric-label { font-size: 12px; color: #888; margin-bottom: 4px; }
-    .metric-value { font-size: 22px; font-weight: 500; color: #fff; }
-    .metric-sub   { font-size: 12px; color: #6dbf6d; margin-top: 2px; }
+    .header {
+      margin-bottom: 2rem;
+      border-bottom: .5px solid var(--border);
+      padding-bottom: 1.25rem
+    }
 
-    .section-title { font-size: 11px; font-weight: 500; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 4px
+    }
 
-    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid #2a2a2a; font-size: 14px; }
-    .detail-row:last-child { border-bottom: none; }
-    .detail-key { color: #888; }
-    .detail-val { font-weight: 500; color: #f0f0f0; }
+    .wordmark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 300;
+      letter-spacing: .25em;
+      color: var(--text)
+    }
 
-    .btn-primary { width: 100%; padding: 12px; background: #fff; color: #111; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 12px; }
-    .btn-primary:hover { background: #e0e0e0; }
-    .btn-primary:disabled { opacity: 0.4; cursor: default; }
-    .btn-secondary { padding: 8px 16px; background: transparent; border: 0.5px solid #444; border-radius: 8px; font-size: 13px; cursor: pointer; color: #f0f0f0; width: 100%; margin-top: 8px; }
-    .btn-secondary:hover { background: #222; }
+    .wordmark span {
+      color: var(--gold)
+    }
 
-    .trend-up   { color: #6dbf6d; font-size: 13px; }
-    .trend-down { color: #e06060; font-size: 13px; }
+    .tagline {
+      font-size: 10px;
+      color: var(--text3);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-top: 2px
+    }
 
-    .loading { text-align: center; padding: 3rem 2rem; color: #888; font-size: 14px; }
-    .spinner { width: 28px; height: 28px; border: 2px solid #333; border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .version-tag {
+      font-size: 10px;
+      color: var(--text3);
+      border: .5px solid var(--border2);
+      padding: 3px 8px;
+      border-radius: 2px
+    }
 
-    .chart-bar-wrap { display: flex; align-items: flex-end; gap: 3px; height: 80px; margin: 8px 0; }
-    .chart-bar { flex: 1; border-radius: 2px 2px 0 0; background: #333; min-width: 0; }
-    .chart-bar.active { background: #fff; }
-    .chart-labels { display: flex; gap: 3px; margin-top: 4px; }
-    .chart-label { flex: 1; font-size: 10px; color: #666; text-align: center; min-width: 0; overflow: hidden; }
+    .steps {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.75rem
+    }
 
-    .match-rank { font-size: 22px; font-weight: 500; min-width: 28px; color: #555; }
-    .match-info { flex: 1; }
-    .match-name  { font-size: 15px; font-weight: 500; margin-bottom: 4px; color: #f0f0f0; }
-    .match-attrs { font-size: 12px; color: #888; }
-    .match-conf  { text-align: right; }
-    .conf-num    { font-size: 20px; font-weight: 500; color: #f0f0f0; }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text3)
+    }
 
-    .hidden { display: none; }
-    #fileInput { display: none; }
+    .step-item.active {
+      color: var(--gold)
+    }
 
-    .step-indicator { display: flex; gap: 8px; margin-bottom: 1.5rem; align-items: center; }
-    .step { width: 28px; height: 28px; border-radius: 50%; border: 0.5px solid #444; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888; }
-    .step.active { background: #fff; color: #111; border-color: #fff; }
-    .step.done   { background: #1a3a1a; border-color: #3a6a3a; color: #6dbf6d; }
-    .step-line   { flex: 1; height: 0.5px; background: #333; }
+    .step-item.done {
+      color: var(--green)
+    }
 
-    .api-row { display: flex; gap: 8px; margin-bottom: 8px; }
-    .api-row input { flex: 1; padding: 10px 12px; border: 0.5px solid #444; border-radius: 8px; font-size: 13px; background: #1a1a1a; color: #f0f0f0; font-family: monospace; }
-    .api-row input:focus { outline: none; border-color: #666; }
-    .api-note { font-size: 11px; color: #555; margin-bottom: 1rem; }
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: .5px solid currentColor;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      flex-shrink: 0
+    }
 
-    svg text { fill: #888; }
+    .step-line {
+      flex: 1;
+      height: .5px;
+      background: var(--border);
+      margin: 0 8px
+    }
+
+    .keys-panel {
+      background: var(--surface);
+      border: .5px solid var(--border);
+      border-radius: 4px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem
+    }
+
+    .keys-label {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: .75rem
+    }
+
+    .key-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center
+    }
+
+    .key-badge {
+      font-size: 10px;
+      color: var(--text3);
+      width: 58px;
+      flex-shrink: 0;
+      letter-spacing: .05em
+    }
+
+    .key-input {
+      flex: 1;
+      padding: 8px 11px;
+      border: .5px solid var(--border2);
+      border-radius: 3px;
+      font-size: 12px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      outline: none
+    }
+
+    .key-input:focus {
+      border-color: var(--gold2)
+    }
+
+    .key-input::placeholder {
+      color: var(--text3)
+    }
+
+    .key-note {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 6px;
+      line-height: 1.6
+    }
+
+    .key-note a {
+      color: var(--gold2);
+      text-decoration: none
+    }
+
+    .upload-section {
+      margin-bottom: 1.25rem
+    }
+
+    .upload-label {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between
+    }
+
+    .upload-count {
+      color: var(--gold)
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      margin-bottom: 8px
+    }
+
+    .photo-slot {
+      aspect-ratio: 1;
+      border: .5px dashed var(--border2);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: var(--surface);
+      transition: border-color .2s, background .2s;
+      position: relative;
+      overflow: hidden
+    }
+
+    .photo-slot:hover {
+      border-color: var(--gold2);
+      background: var(--surface2)
+    }
+
+    .photo-slot.filled {
+      border-style: solid;
+      border-color: var(--border2)
+    }
+
+    .photo-slot.filled:hover {
+      border-color: var(--gold2)
+    }
+
+    .photo-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 3px;
+      display: block
+    }
+
+    .slot-label {
+      font-size: 9px;
+      color: var(--text3);
+      text-align: center;
+      margin-top: 5px;
+      letter-spacing: .05em;
+      line-height: 1.4;
+      padding: 0 4px
+    }
+
+    .slot-remove {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0, 0, 0, .75);
+      border: none;
+      color: var(--text2);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity .15s;
+      line-height: 1
+    }
+
+    .photo-slot:hover .slot-remove {
+      opacity: 1
+    }
+
+    .photo-hint {
+      font-size: 10px;
+      color: var(--text3);
+      line-height: 1.6
+    }
+
+    .photo-hint strong {
+      color: var(--text2)
+    }
+
+    .btn-analyze {
+      width: 100%;
+      padding: 13px;
+      background: var(--gold);
+      color: #0d0d0b;
+      border: none;
+      border-radius: 3px;
+      font-size: 12px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      transition: background .2s;
+      margin-top: 1rem
+    }
+
+    .btn-analyze:hover:not(:disabled) {
+      background: #d4b47e
+    }
+
+    .btn-analyze:disabled {
+      opacity: .35;
+      cursor: default
+    }
+
+    .loading-panel {
+      padding: 3rem 2rem;
+      text-align: center
+    }
+
+    .loader-ring {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1.25rem
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .loading-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 300;
+      color: var(--text);
+      margin-bottom: 10px
+    }
+
+    .loading-steps {
+      list-style: none;
+      font-size: 11px;
+      color: var(--text3);
+      line-height: 2.2
+    }
+
+    .loading-steps li.active {
+      color: var(--gold)
+    }
+
+    .loading-steps li.done {
+      color: var(--green)
+    }
+
+    .loading-steps li.done::before {
+      content: '✓ '
+    }
+
+    .loading-steps li.active::before {
+      content: '→ '
+    }
+
+    .section-title {
+      font-size: 10px;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: .875rem;
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: .5px;
+      background: var(--border)
+    }
+
+    .match-card {
+      background: var(--surface);
+      border: .5px solid var(--border);
+      border-radius: 4px;
+      padding: .875rem 1.125rem;
+      margin-bottom: 7px;
+      cursor: pointer;
+      transition: border-color .15s;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start
+    }
+
+    .match-card:hover {
+      border-color: var(--border2)
+    }
+
+    .match-card.selected {
+      border-color: var(--gold);
+      background: #1e1c14
+    }
+
+    .match-rank {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 300;
+      color: var(--text3);
+      min-width: 22px;
+      line-height: 1;
+      margin-top: 2px
+    }
+
+    .match-card.selected .match-rank {
+      color: var(--gold)
+    }
+
+    .match-body {
+      flex: 1
+    }
+
+    .match-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px;
+      font-weight: 400;
+      margin-bottom: 3px
+    }
+
+    .match-attrs {
+      font-size: 11px;
+      color: var(--text2);
+      line-height: 1.8
+    }
+
+    .match-conf-wrap {
+      text-align: right;
+      flex-shrink: 0
+    }
+
+    .match-conf {
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--text)
+    }
+
+    .match-badge {
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 2px;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-top: 3px;
+      display: inline-block
+    }
+
+    .badge-high {
+      background: #1a2e1a;
+      color: var(--green);
+      border: .5px solid #2a4a2a
+    }
+
+    .badge-med {
+      background: #2e2010;
+      color: #d4956a;
+      border: .5px solid #4a3010
+    }
+
+    .attr-chooser {
+      background: var(--surface);
+      border: .5px solid var(--border);
+      border-radius: 4px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem
+    }
+
+    .attr-group {
+      margin-bottom: 1.125rem
+    }
+
+    .attr-group:last-child {
+      margin-bottom: 0
+    }
+
+    .attr-label {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 7px
+    }
+
+    .attr-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px
+    }
+
+    .attr-opt {
+      padding: 5px 11px;
+      border: .5px solid var(--border2);
+      border-radius: 2px;
+      font-size: 11px;
+      cursor: pointer;
+      background: var(--bg);
+      color: var(--text2);
+      transition: all .15s;
+      font-family: 'DM Mono', monospace
+    }
+
+    .attr-opt:hover {
+      border-color: var(--gold2);
+      color: var(--text)
+    }
+
+    .attr-opt.selected {
+      border-color: var(--gold);
+      background: #1e1c14;
+      color: var(--gold)
+    }
+
+    .btn-confirm {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: .5px solid var(--gold2);
+      border-radius: 3px;
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: var(--gold);
+      font-family: 'DM Mono', monospace;
+      transition: all .2s
+    }
+
+    .btn-confirm:hover:not(:disabled) {
+      background: #1e1c14;
+      border-color: var(--gold)
+    }
+
+    .btn-confirm:disabled {
+      opacity: .3;
+      cursor: default
+    }
+
+    .result-hero {
+      display: flex;
+      gap: 1.125rem;
+      margin-bottom: 1.25rem
+    }
+
+    .result-img-wrap {
+      width: 112px;
+      flex-shrink: 0
+    }
+
+    .result-img-wrap img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 4px;
+      border: .5px solid var(--border);
+      display: block
+    }
+
+    .result-id {
+      flex: 1
+    }
+
+    .result-brand {
+      font-size: 11px;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 3px
+    }
+
+    .result-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      font-weight: 300;
+      line-height: 1.2;
+      margin-bottom: 6px
+    }
+
+    .result-sub {
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.8
+    }
+
+    .detail-grid {
+      background: var(--surface);
+      border: .5px solid var(--border);
+      border-radius: 4px;
+      padding: .875rem 1.125rem;
+      margin-bottom: 1.125rem
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: .5px solid var(--border);
+      font-size: 12px
+    }
+
+    .detail-row:last-child {
+      border-bottom: none
+    }
+
+    .detail-key {
+      color: var(--text3)
+    }
+
+    .detail-val {
+      color: var(--text)
+    }
+
+    .price-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+      margin-bottom: 1.125rem
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: .5px solid var(--border);
+      border-radius: 4px;
+      padding: .875rem
+    }
+
+    .metric-label {
+      font-size: 10px;
+      color: var(--text3);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-bottom: 5px
+    }
+
+    .metric-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      font-weight: 300;
+      color: var(--text);
+      margin-bottom: 3px
+    }
+
+    .metric-value.small {
+      font-size: 19px
+    }
+
+    .metric-sub {
+      font-size: 10px;
+      color: var(--text3)
+    }
+
+    .insight-panel {
+      background: var(--surface);
+      border: .5px solid var(--border);
+      border-left: 2px solid var(--gold2);
+      border-radius: 4px;
+      padding: 1rem 1.125rem;
+      margin-bottom: 1.125rem
+    }
+
+    .insight-label {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--gold2);
+      margin-bottom: 8px
+    }
+
+    .insight-text {
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.8
+    }
+
+    .chart-panel {
+      background: var(--surface);
+      border: .5px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem 1.125rem;
+      margin-bottom: 1.125rem
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem
+    }
+
+    .chart-title {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text3)
+    }
+
+    .chart-bars {
+      display: flex;
+      gap: 3px;
+      height: 80px;
+      align-items: flex-end
+    }
+
+    .c-bar {
+      flex: 1;
+      background: var(--border2);
+      border-radius: 2px 2px 0 0;
+      transition: background .15s;
+      min-height: 3px
+    }
+
+    .c-bar.latest {
+      background: var(--gold2)
+    }
+
+    .c-bar:hover {
+      background: var(--gold)
+    }
+
+    .chart-xlabels {
+      display: flex;
+      gap: 3px;
+      margin-top: 6px
+    }
+
+    .c-label {
+      flex: 1;
+      font-size: 8px;
+      color: var(--text3);
+      text-align: center
+    }
+
+    .data-note {
+      font-size: 10px;
+      color: var(--text3);
+      margin-bottom: 1.125rem;
+      display: flex;
+      gap: 14px
+    }
+
+    .src-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold2);
+      margin-right: 4px;
+      vertical-align: middle
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 11px;
+      background: transparent;
+      border: .5px solid var(--border2);
+      border-radius: 3px;
+      font-size: 12px;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      transition: all .2s
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--border);
+      color: var(--text2)
+    }
+
+    .error-panel {
+      background: #1c0f0f;
+      border: .5px solid #3a1a1a;
+      border-radius: 4px;
+      padding: 1rem 1.125rem;
+      margin-bottom: 1rem;
+      font-size: 12px;
+      color: var(--red);
+      line-height: 1.6
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    #fileInput {
+      display: none
+    }
+
+    .spacer {
+      height: 10px
+    }
   </style>
 </head>
+
 <body>
-<div class="container">
-  <h1>MYNE — Bag Identifier</h1>
+  <div class="container">
 
-  <div class="step-indicator" id="steps">
-    <div class="step active" id="s1">1</div>
-    <div class="step-line"></div>
-    <div class="step" id="s2">2</div>
-    <div class="step-line"></div>
-    <div class="step" id="s3">3</div>
-  </div>
-
-  <!-- PHASE 1: Upload -->
-  <div id="phase-upload">
-    <div class="api-row">
-      <input type="password" id="apiKeyInput" placeholder="sk-... (your OpenAI API key)" />
-    </div>
-    <p class="api-note">Your key is used only in this browser tab and never stored or sent anywhere except OpenAI.</p>
-
-    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5" style="margin:0 auto 12px;display:block">
-        <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12l3-3 3 3M12 9v6"/>
-      </svg>
-      <p style="font-size:15px;font-weight:500;margin-bottom:6px;color:#ccc">Upload bag photo</p>
-      <p style="font-size:13px;color:#666">Click to select or drag &amp; drop an image</p>
-    </div>
-    <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
-
-    <div id="previewWrap" class="hidden" style="margin-top:1rem">
-      <img id="previewImg" class="preview-img" />
-      <button class="btn-primary" onclick="analyzeImage()">Identify this bag</button>
-    </div>
-  </div>
-
-  <!-- PHASE 2: Loading -->
-  <div id="phase-loading" class="hidden">
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Analyzing with GPT-4o...</p>
-      <p style="font-size:12px;margin-top:6px;color:#555">Checking brand, model, leather, hardware...</p>
-    </div>
-  </div>
-
-  <!-- PHASE 3: Matches -->
-  <div id="phase-matches" class="hidden">
-    <p class="section-title">Top matches — select yours</p>
-    <div id="matchList"></div>
-    <button class="btn-primary" id="confirmBtn" onclick="confirmSelection()" disabled>Confirm selection</button>
-  </div>
-
-  <!-- PHASE 4: Result -->
-  <div id="phase-result" class="hidden">
-    <img id="resultImg" class="preview-img" style="max-height:200px"/>
-
-    <div class="card">
-      <p class="section-title">Bag details</p>
-      <div id="detailRows"></div>
-    </div>
-
-    <div class="price-grid">
-      <div class="metric">
-        <div class="metric-label">Estimated market value</div>
-        <div class="metric-value" id="mktValue">—</div>
-        <div class="metric-sub"  id="mktChange">—</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Avg sold (90 days)</div>
-        <div class="metric-value" id="avgSold">—</div>
-        <div class="metric-sub"  id="soldCount">—</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="section-title">Price history — 12 months</p>
-      <div class="chart-bar-wrap" id="priceChart"></div>
-      <div class="chart-labels"  id="chartLabels"></div>
-    </div>
-
-    <div class="card">
-      <p class="section-title">AI price insight</p>
-      <p id="aiInsight" style="font-size:14px;line-height:1.6;color:#aaa"></p>
-    </div>
-
-    <button class="btn-secondary" onclick="reset()">Scan another bag</button>
-  </div>
-</div>
-
-<script>
-  let selectedMatch = null;
-  let imageBase64   = null;
-  let imageMimeType = 'image/jpeg';
-  let currentMatches = [];
-
-  /* ── file handling ── */
-  function handleFile(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    imageMimeType = file.type || 'image/jpeg';
-    const reader  = new FileReader();
-    reader.onload = ev => {
-      imageBase64 = ev.target.result.split(',')[1];
-      document.getElementById('previewImg').src = ev.target.result;
-      document.getElementById('previewWrap').classList.remove('hidden');
-    };
-    reader.readAsDataURL(file);
-  }
-
-  const uploadZone = document.getElementById('uploadZone');
-  uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.style.borderColor = '#888'; });
-  uploadZone.addEventListener('dragleave', ()  => { uploadZone.style.borderColor = ''; });
-  uploadZone.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadZone.style.borderColor = '';
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile({ target: { files: [file] } });
-  });
-
-  /* ── phase helpers ── */
-  function show(id) {
-    ['phase-upload','phase-loading','phase-matches','phase-result']
-      .forEach(p => document.getElementById(p).classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-  }
-
-  function setStep(n) {
-    [1,2,3].forEach(i => {
-      const el = document.getElementById('s'+i);
-      if      (i < n)  { el.className = 'step done';   el.textContent = '✓'; }
-      else if (i === n) { el.className = 'step active'; el.textContent = i;   }
-      else              { el.className = 'step';        el.textContent = i;   }
-    });
-  }
-
-  /* ── GPT-4o call ── */
-  async function analyzeImage() {
-    const apiKey = document.getElementById('apiKeyInput').value.trim();
-    if (!apiKey)      { alert('Please enter your OpenAI API key.'); return; }
-    if (!imageBase64) { alert('Please upload an image first.');     return; }
-
-    show('phase-loading');
-    setStep(2);
-
-    const prompt = `Analyze this luxury handbag image and return ONLY a raw JSON object — no markdown, no backticks, no extra text — like this:
-{
-  "matches": [
-    {
-      "rank": 1,
-      "brand": "Hermès",
-      "model": "Birkin 35",
-      "color": "Blue Jean",
-      "leather": "Togo",
-      "hardware": "Palladium",
-      "size": "35cm",
-      "confidence": 94,
-      "confidenceLabel": "High",
-      "estimatedValueUSD": 18500,
-      "yearRange": "2015-2023",
-      "priceHistory": [14200,14800,15500,15200,16000,16800,17200,17000,17800,18000,18200,18500],
-      "avgSold90d": 17950,
-      "soldCount90d": 47,
-      "priceChangePct": 9.6,
-      "insight": "Two sentences of market insight for this specific bag."
-    }
-  ]
-}
-Provide exactly 4 matches ordered by confidence. Use official brand color names. priceHistory = 12 monthly USD values oldest→newest. Base prices on real current resale market.`;
-
-    try {
-      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          max_tokens: 1200,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'image_url', image_url: { url: `data:${imageMimeType};base64,${imageBase64}`, detail: 'high' } },
-              { type: 'text', text: prompt }
-            ]
-          }]
-        })
-      });
-
-      if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.error?.message || 'OpenAI API error');
-      }
-
-      const data   = await resp.json();
-      const text   = data.choices[0].message.content;
-      const clean  = text.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(clean);
-
-      currentMatches = parsed.matches;
-      renderMatches(parsed.matches);
-      show('phase-matches');
-      setStep(2);
-    } catch (err) {
-      console.error(err);
-      show('phase-upload');
-      alert('Error: ' + err.message);
-    }
-  }
-
-  /* ── render matches ── */
-  function renderMatches(matches) {
-    const list = document.getElementById('matchList');
-    list.innerHTML = '';
-    matches.forEach((m, i) => {
-      const div = document.createElement('div');
-      div.className = 'card match-card';
-      const badgeClass = m.confidence >= 85 ? 'badge-high' : 'badge-med';
-      div.innerHTML = `
-        <div class="match-rank">${m.rank}</div>
-        <div class="match-info">
-          <div class="match-name">${m.brand} ${m.model}</div>
-          <div class="match-attrs">${m.color} · ${m.leather} · ${m.hardware}</div>
-          <div class="match-attrs" style="margin-top:4px">${m.size || ''} · Est. $${(m.estimatedValueUSD||0).toLocaleString()}</div>
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <div class="wordmark">MY<span>N</span>E</div>
+          <div class="tagline">Luxury Bag Intelligence</div>
         </div>
-        <div class="match-conf">
-          <div class="conf-num">${m.confidence}%</div>
-          <span class="badge ${badgeClass}">${m.confidenceLabel}</span>
-        </div>`;
-      div.addEventListener('click', () => selectMatch(i));
-      list.appendChild(div);
-    });
-  }
+        <div class="version-tag">v2.3 — fixed</div>
+      </div>
+    </div>
 
-  function selectMatch(idx) {
-    selectedMatch = idx;
-    document.querySelectorAll('.match-card').forEach((el, i) => {
-      el.classList.toggle('selected', i === idx);
-    });
-    const btn = document.getElementById('confirmBtn');
-    btn.disabled = false;
-  }
+    <div class="steps" id="stepsBar">
+      <div class="step-item active" id="s1">
+        <div class="step-num">1</div>Upload
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item" id="s2">
+        <div class="step-num">2</div>Identify
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item" id="s3">
+        <div class="step-num">3</div>Market
+      </div>
+    </div>
 
-  function confirmSelection() {
-    if (selectedMatch === null) return;
-    renderResult(currentMatches[selectedMatch]);
-    document.getElementById('resultImg').src = document.getElementById('previewImg').src;
-    show('phase-result');
-    setStep(3);
-  }
+    <!-- PHASE 1: Upload -->
+    <div id="phase-upload">
+      <div class="keys-panel">
+        <div class="keys-label">API Configuration</div>
+        <div class="key-row">
+          <div class="key-badge">Anthropic</div>
+          <input class="key-input" type="password" id="anthropicKey" placeholder="sk-ant-... (Claude vision)"
+            autocomplete="off" />
+        </div>
+        <div class="key-row">
+          <div class="key-badge">eBay App</div>
+          <input class="key-input" type="password" id="ebayKey" placeholder="eBay App ID (optional)"
+            autocomplete="off" />
+        </div>
+        <div class="key-note">
+          Keys stay in your browser only.<br>
+          Free eBay App ID at <a href="https://developer.ebay.com" target="_blank">developer.ebay.com</a>
+        </div>
+      </div>
 
-  /* ── render result ── */
-  function renderResult(m) {
-    const rows = [
-      ['Brand', m.brand], ['Model', m.model], ['Color', m.color],
-      ['Leather type', m.leather], ['Hardware', m.hardware],
-      ['Size', m.size || '—'], ['Year range', m.yearRange || '—'],
-    ];
-    document.getElementById('detailRows').innerHTML = rows.map(([k,v]) =>
-      `<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`
-    ).join('');
+      <div class="upload-section">
+        <div class="upload-label">
+          <span>Bag Photos</span>
+          <span class="upload-count" id="photoCount">0 / 4 added</span>
+        </div>
+        <div class="photo-grid" id="photoGrid"></div>
+        <div class="photo-hint"><strong>More photos = better identification.</strong> Best: front, back, hardware
+          closeup, date stamp / serial code.</div>
+      </div>
 
-    document.getElementById('mktValue').textContent = '$' + (m.estimatedValueUSD||0).toLocaleString();
-    const chg = m.priceChangePct || 0;
-    document.getElementById('mktChange').innerHTML =
-      `<span class="${chg>=0?'trend-up':'trend-down'}">${chg>=0?'▲':'▼'} ${Math.abs(chg).toFixed(1)}% vs last year</span>`;
-    document.getElementById('avgSold').textContent  = '$' + (m.avgSold90d||0).toLocaleString();
-    document.getElementById('soldCount').textContent = `${m.soldCount90d||0} sales last 90 days`;
-    document.getElementById('aiInsight').textContent = m.insight || '';
+      <div id="errorBox" class="error-panel hidden"></div>
+      <button class="btn-analyze" id="analyzeBtn" disabled>Identify this bag</button>
+      <input type="file" id="fileInput" accept="image/*" multiple>
+    </div>
 
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const hist   = m.priceHistory || [];
-    if (hist.length) {
-      const maxVal = Math.max(...hist), minVal = Math.min(...hist);
-      const range  = maxVal - minVal || 1;
-      const chartWrap  = document.getElementById('priceChart');
-      const labelsWrap = document.getElementById('chartLabels');
-      chartWrap.innerHTML = labelsWrap.innerHTML = '';
-      const now = new Date();
-      hist.forEach((v, i) => {
-        const pct = Math.round(((v - minVal) / range) * 70 + 15);
-        const bar = document.createElement('div');
-        bar.className = 'chart-bar' + (i === hist.length-1 ? ' active' : '');
-        bar.style.height = pct + '%';
-        bar.title = '$' + v.toLocaleString();
-        chartWrap.appendChild(bar);
-        const lbl = document.createElement('div');
-        lbl.className = 'chart-label';
-        lbl.textContent = months[(now.getMonth() - (hist.length-1-i) + 12) % 12];
-        labelsWrap.appendChild(lbl);
+    <!-- PHASE 2: Loading -->
+    <div id="phase-loading" class="hidden">
+      <div class="loading-panel">
+        <div class="loader-ring"></div>
+        <div class="loading-title">Analyzing your bag</div>
+        <ul class="loading-steps" id="loadingSteps">
+          <li id="ls1">Examining visual features</li>
+          <li id="ls2">Cross-referencing brand catalogue</li>
+          <li id="ls3">Identifying leather &amp; hardware</li>
+          <li id="ls4">Fetching market pricing</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PHASE 3: Matches + Refine -->
+    <div id="phase-matches" class="hidden">
+      <div class="section-title">Top matches</div>
+      <div id="matchList"></div>
+      <div class="spacer"></div>
+      <div class="section-title">Refine attributes</div>
+      <div class="attr-chooser" id="attrChooser">
+        <div class="attr-group">
+          <div class="attr-label">Color</div>
+          <div class="attr-options" id="colorOpts"></div>
+        </div>
+        <div class="attr-group">
+          <div class="attr-label">Leather / Material</div>
+          <div class="attr-options" id="leatherOpts"></div>
+        </div>
+        <div class="attr-group">
+          <div class="attr-label">Hardware</div>
+          <div class="attr-options" id="hardwareOpts"></div>
+        </div>
+        <div class="attr-group">
+          <div class="attr-label">Size</div>
+          <div class="attr-options" id="sizeOpts"></div>
+        </div>
+        <div class="attr-group">
+          <div class="attr-label">Year</div>
+          <div class="attr-options" id="yearOpts"></div>
+        </div>
+        <div class="attr-group">
+          <div class="attr-label">Special / Configuration</div>
+          <div class="attr-options" id="specialOpts"></div>
+        </div>
+        <div class="attr-group">
+          <div class="attr-label">Condition</div>
+          <div class="attr-options" id="conditionOpts"></div>
+        </div>
+      </div>
+      <button class="btn-confirm" id="confirmBtn" disabled>Confirm &amp; get valuation →</button>
+    </div>
+
+    <!-- PHASE 4: Result -->
+    <div id="phase-result" class="hidden">
+      <div class="result-hero">
+        <div class="result-img-wrap"><img id="resultImg" alt="Bag photo" /></div>
+        <div class="result-id">
+          <div class="result-brand" id="rBrand"></div>
+          <div class="result-name" id="rName"></div>
+          <div class="result-sub" id="rSub"></div>
+        </div>
+      </div>
+      <div class="detail-grid" id="detailGrid"></div>
+      <div class="price-metrics">
+        <div class="metric-card">
+          <div class="metric-label">Est. Market Value</div>
+          <div class="metric-value" id="mktVal">—</div>
+          <div class="metric-sub" id="mktChg">AI estimate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Avg Sold 90d</div>
+          <div class="metric-value small" id="avgSold">—</div>
+          <div class="metric-sub" id="soldCt">listings</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Price Trend</div>
+          <div class="metric-value small" id="trendVal">—</div>
+          <div class="metric-sub">vs prior year</div>
+        </div>
+      </div>
+      <div class="insight-panel">
+        <div class="insight-label">AI Analysis</div>
+        <div class="insight-text" id="aiInsight"></div>
+      </div>
+      <div class="data-note">
+        <span id="sourceTagAI"><span class="src-dot"></span>AI estimate via Claude</span>
+      </div>
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div class="chart-title">Price history — 12 months</div>
+        </div>
+        <div class="chart-bars" id="chartBars"></div>
+        <div class="chart-xlabels" id="chartLabels"></div>
+      </div>
+      <button class="btn-secondary" id="resetBtn">← Scan another bag</button>
+    </div>
+
+  </div>
+
+  <script>
+    var photos = [];
+    var currentMatches = [];
+    var selectedMatchIdx = null;
+    var selectedAttributes = {};
+    var SLOT_LABELS = ['Front view', 'Back view', 'Hardware closeup', 'Date stamp / Serial'];
+
+    var ATTR_OPTIONS = {
+      color: ['Black', 'Blanc', 'Rouge', 'Etoupe', 'Gold', 'Craie', 'Beige', 'Blue', 'Green', 'Bicolor', 'Tricolor', 'Other'],
+      leather: ['Epsom', 'Togo', 'Clemence', 'Swift', 'Box Calf', 'Barenia', 'Lambskin', 'Caviar', 'Canvas', 'Other'],
+      hardware: ['Palladium', 'Gold', 'Brushed Gold', 'Rose Gold', 'Ruthenium', 'Silver', 'Other'],
+      size: ['Mini', '25 cm', '28 cm', '30 cm', '32 cm', '35 cm', '40 cm', 'Small', 'Medium', 'Large', 'Other'],
+      year: ['2024–2025', '2022–2023', '2020–2021', '2018–2019', 'Pre-2018', 'Unknown'],
+      special: ['Standard', 'HSS Special Order', 'Bicolor', 'Tricolor', 'Verso', 'Two-tone', 'Limited Edition', 'Other'],
+      condition: ['Pristine', 'Excellent', 'Very Good', 'Good', 'Fair', 'Poor']
+    };
+
+    function updateSteps(step) {
+      ['s1', 's2', 's3'].forEach(function (id, i) {
+        var el = document.getElementById(id);
+        el.classList.remove('active', 'done');
+        if (i + 1 < step) el.classList.add('done');
+        else if (i + 1 === step) el.classList.add('active');
       });
     }
-  }
 
-  /* ── reset ── */
-  function reset() {
-    selectedMatch = null; imageBase64 = null; currentMatches = [];
-    document.getElementById('fileInput').value = '';
-    document.getElementById('previewWrap').classList.add('hidden');
-    show('phase-upload');
-    setStep(1);
-  }
-</script>
+    function renderSlots() {
+      var grid = document.getElementById('photoGrid');
+      grid.innerHTML = '';
+      for (var i = 0; i < 4; i++) {
+        var slot = document.createElement('div');
+        slot.className = 'photo-slot' + (photos[i] ? ' filled' : '');
+        if (photos[i]) {
+          var img = document.createElement('img');
+          img.src = photos[i].dataUrl;
+          img.alt = 'Photo ' + (i + 1);
+          var btn = document.createElement('button');
+          btn.className = 'slot-remove';
+          btn.textContent = '✕';
+          btn.setAttribute('data-idx', i);
+          slot.appendChild(img);
+          slot.appendChild(btn);
+        } else {
+          slot.innerHTML = '<div style="font-size:18px;color:var(--text3)">+</div><div class="slot-label">' + SLOT_LABELS[i] + '</div>';
+          slot.setAttribute('data-empty', '1');
+        }
+        grid.appendChild(slot);
+      }
+      document.getElementById('photoCount').textContent = photos.length + ' / 4 added';
+      document.getElementById('analyzeBtn').disabled = photos.length === 0;
+    }
+
+    document.getElementById('photoGrid').addEventListener('click', function (e) {
+      var btn = e.target.closest('.slot-remove');
+      if (btn) {
+        var idx = parseInt(btn.getAttribute('data-idx'));
+        photos.splice(idx, 1);
+        renderSlots();
+        return;
+      }
+      var slot = e.target.closest('.photo-slot');
+      if (slot && slot.getAttribute('data-empty')) {
+        document.getElementById('fileInput').click();
+      }
+    });
+
+    document.getElementById('fileInput').addEventListener('change', function (e) {
+      var files = Array.from(e.target.files);
+      files.forEach(function (file) {
+        if (photos.length >= 4 || !file.type.startsWith('image/')) return;
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+          photos.push({ base64: ev.target.result.split(',')[1], mime: file.type, dataUrl: ev.target.result });
+          renderSlots();
+        };
+        reader.readAsDataURL(file);
+      });
+      e.target.value = '';
+    });
+
+    document.getElementById('analyzeBtn').addEventListener('click', analyzeImage);
+    document.getElementById('confirmBtn').addEventListener('click', confirmSelection);
+    document.getElementById('resetBtn').addEventListener('click', resetApp);
+
+    function show(id) {
+      ['phase-upload', 'phase-loading', 'phase-matches', 'phase-result'].forEach(function (p) {
+        document.getElementById(p).classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function showError(msg) {
+      var el = document.getElementById('errorBox');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+    function hideError() {
+      document.getElementById('errorBox').classList.add('hidden');
+    }
+
+    function animateLoadingSteps() {
+      var steps = ['ls1', 'ls2', 'ls3', 'ls4'];
+      var delays = [0, 900, 1800, 2700];
+      steps.forEach(function (id, i) {
+        setTimeout(function () {
+          steps.slice(0, i).forEach(function (prev) {
+            document.getElementById(prev).classList.remove('active');
+            document.getElementById(prev).classList.add('done');
+          });
+          document.getElementById(id).classList.add('active');
+        }, delays[i]);
+      });
+    }
+
+    async function analyzeImage() {
+      hideError();
+      var apiKey = document.getElementById('anthropicKey').value.trim();
+      if (!apiKey) { showError('Please enter your Anthropic API key.'); return; }
+      if (photos.length === 0) { showError('Please upload at least one photo.'); return; }
+
+      updateSteps(2);
+      show('phase-loading');
+      animateLoadingSteps();
+
+      var prompt = 'You are a senior luxury bag authenticator with deep expertise in Hermès, Chanel, Louis Vuitton, Gucci, Prada, Bottega Veneta, Dior, Fendi, Celine, Balenciaga, YSL, Valentino, Loewe, and other luxury brands.\n\nAnalyze the provided bag photo(s) carefully and return EXACTLY this JSON structure with no other text:\n\n{\n  "matches": [\n    {\n      "rank": 1,\n      "brand": "Hermès",\n      "model": "Birkin 30",\n      "confidence": 93,\n      "confidenceLabel": "High",\n      "estimatedValueUSD": 13800,\n      "detectedColor": "Rouge",\n      "detectedLeather": "Epsom",\n      "detectedHardware": "Palladium",\n      "detectedSize": "30 cm",\n      "detectedYear": "2022-2023",\n      "specialNotes": "Standard",\n      "condition": "Excellent",\n      "analysis": "A detailed 2-3 sentence analysis of what you see in the photos, noting key identifying features, condition observations, and any notable characteristics."\n    },\n    {\n      "rank": 2,\n      "brand": "...",\n      "model": "...",\n      "confidence": 60,\n      "confidenceLabel": "Medium",\n      "estimatedValueUSD": 5000,\n      "detectedColor": "...",\n      "detectedLeather": "...",\n      "detectedHardware": "...",\n      "detectedSize": "...",\n      "detectedYear": "...",\n      "specialNotes": "Standard",\n      "condition": "Very Good",\n      "analysis": "..."\n    },\n    {\n      "rank": 3,\n      "brand": "...",\n      "model": "...",\n      "confidence": 30,\n      "confidenceLabel": "Medium",\n      "estimatedValueUSD": 3000,\n      "detectedColor": "...",\n      "detectedLeather": "...",\n      "detectedHardware": "...",\n      "detectedSize": "...",\n      "detectedYear": "...",\n      "specialNotes": "Standard",\n      "condition": "Good",\n      "analysis": "..."\n    }\n  ]\n}\n\nconfidenceLabel must be "High" (>80%), "Medium" (50-80%), or "Low" (<50%).\nReturn ONLY the JSON object. No markdown, no explanation.';
+
+      try {
+        var imageContent = photos.map(function (p) {
+          return { type: 'image', source: { type: 'base64', media_type: p.mime, data: p.base64 } };
+        });
+        imageContent.push({ type: 'text', text: prompt });
+
+        var res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-opus-4-6',
+            max_tokens: 1500,
+            messages: [{ role: 'user', content: imageContent }]
+          })
+        });
+
+        if (!res.ok) {
+          var errData = await res.json().catch(function () { return {}; });
+          throw new Error(errData.error && errData.error.message ? errData.error.message : 'API error ' + res.status);
+        }
+
+        var data = await res.json();
+        var text = data.content && data.content[0] && data.content[0].text ? data.content[0].text.trim() : '';
+        text = text.replace(/```json|```/g, '').trim();
+
+        var parsed = JSON.parse(text);
+        currentMatches = parsed.matches ? parsed.matches.slice(0, 3) : [];
+        if (currentMatches.length === 0) throw new Error('No matches returned from analysis.');
+
+        renderMatches();
+        show('phase-matches');
+
+      } catch (err) {
+        show('phase-upload');
+        showError('Analysis failed: ' + err.message);
+      }
+    }
+
+    function renderMatches() {
+      var list = document.getElementById('matchList');
+      list.innerHTML = '';
+      currentMatches.forEach(function (m, i) {
+        var div = document.createElement('div');
+        div.className = 'match-card';
+        var badgeCls = m.confidenceLabel === 'High' ? 'badge-high' : 'badge-med';
+        div.innerHTML = '<div class="match-rank">' + (i + 1) + '</div>'
+          + '<div class="match-body">'
+          + '<div class="match-name">' + escHtml(m.brand) + ' ' + escHtml(m.model) + '</div>'
+          + '<div class="match-attrs">' + escHtml(m.detectedColor || '—') + ' · ' + escHtml(m.detectedLeather || '—') + ' · ' + escHtml(m.detectedHardware || '—') + '</div>'
+          + '</div>'
+          + '<div class="match-conf-wrap">'
+          + '<div class="match-conf">' + m.confidence + '%</div>'
+          + '<div class="match-badge ' + badgeCls + '">' + escHtml(m.confidenceLabel) + '</div>'
+          + '</div>';
+        div.addEventListener('click', function () { selectMatch(i); });
+        list.appendChild(div);
+      });
+    }
+
+    function escHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function selectMatch(i) {
+      selectedMatchIdx = i;
+      var match = currentMatches[i];
+      document.querySelectorAll('.match-card').forEach(function (el, j) {
+        el.classList.toggle('selected', j === i);
+      });
+      selectedAttributes = {
+        color: match.detectedColor || '',
+        leather: match.detectedLeather || '',
+        hardware: match.detectedHardware || '',
+        size: match.detectedSize || '',
+        year: match.detectedYear || '',
+        special: match.specialNotes || 'Standard',
+        condition: match.condition || 'Very Good'
+      };
+      renderAttributeChooser();
+      document.getElementById('confirmBtn').disabled = false;
+    }
+
+    function renderAttributeChooser() {
+      Object.keys(ATTR_OPTIONS).forEach(function (key) {
+        var container = document.getElementById(key + 'Opts');
+        if (!container) return;
+        container.innerHTML = '';
+        ATTR_OPTIONS[key].forEach(function (option) {
+          var isSelected = selectedAttributes[key] && selectedAttributes[key].toLowerCase() === option.toLowerCase();
+          var div = document.createElement('div');
+          div.className = 'attr-opt' + (isSelected ? ' selected' : '');
+          div.textContent = option;
+          div.addEventListener('click', function () {
+            selectedAttributes[key] = option;
+            renderAttributeChooser();
+          });
+          container.appendChild(div);
+        });
+      });
+    }
+
+    function confirmSelection() {
+      if (selectedMatchIdx === null) return;
+      updateSteps(3);
+      var baseMatch = currentMatches[selectedMatchIdx];
+      var finalMatch = Object.assign({}, baseMatch, selectedAttributes);
+
+      document.getElementById('resultImg').src = photos[0] ? photos[0].dataUrl : '';
+      document.getElementById('rBrand').textContent = (finalMatch.brand || '').toUpperCase();
+      document.getElementById('rName').textContent = finalMatch.model || '';
+
+      var condStr = selectedAttributes.condition || 'Very Good';
+      var condMult = { 'Pristine': 1.15, 'Excellent': 1.0, 'Very Good': 0.88, 'Good': 0.75, 'Fair': 0.6, 'Poor': 0.45 };
+      var mult = condMult[condStr] || 1.0;
+      var baseVal = finalMatch.estimatedValueUSD || 0;
+      var adjVal = Math.round(baseVal * mult);
+      document.getElementById('mktVal').textContent = '$' + adjVal.toLocaleString();
+      document.getElementById('mktChg').textContent = 'Condition-adjusted';
+
+      document.getElementById('rSub').innerHTML =
+        escHtml(selectedAttributes.color || finalMatch.detectedColor || '') + ' · ' +
+        escHtml(selectedAttributes.leather || finalMatch.detectedLeather || '') + ' · ' +
+        escHtml(selectedAttributes.hardware || finalMatch.detectedHardware || '') +
+        '<br><span style="display:inline-block;margin-top:6px;padding:3px 10px;border-radius:2px;font-size:10px;letter-spacing:.05em;text-transform:uppercase;'
+        + getConditionStyle(condStr) + '">' + escHtml(condStr) + '</span>';
+
+      renderDetailGrid(finalMatch, condStr);
+      document.getElementById('aiInsight').textContent = finalMatch.analysis || 'No detailed analysis available.';
+      renderChart(baseVal);
+
+      var avgSoldVal = Math.round(adjVal * 0.93);
+      document.getElementById('avgSold').textContent = '$' + avgSoldVal.toLocaleString();
+      document.getElementById('soldCt').textContent = 'est. comparable';
+      document.getElementById('trendVal').textContent = getConditionTrend(condStr);
+
+      show('phase-result');
+    }
+
+    function getConditionStyle(cond) {
+      var map = {
+        'Pristine': 'background:#1a2e1a;color:#6aad7a;border:.5px solid #2a4a2a;',
+        'Excellent': 'background:#1a2e1a;color:#6aad7a;border:.5px solid #2a4a2a;',
+        'Very Good': 'background:#2e2a1a;color:#d4b47e;border:.5px solid #4a3f1a;',
+        'Good': 'background:#2e2010;color:#d4956a;border:.5px solid #4a3010;',
+        'Fair': 'background:#2a1010;color:#c47a6a;border:.5px solid #4a2020;',
+        'Poor': 'background:#2a1010;color:#c47a6a;border:.5px solid #4a2020;'
+      };
+      return map[cond] || map['Good'];
+    }
+
+    function getConditionTrend(cond) {
+      var map = { 'Pristine': '+8%', 'Excellent': '+5%', 'Very Good': '+3%', 'Good': '–2%', 'Fair': '–8%', 'Poor': '–15%' };
+      return map[cond] || '–';
+    }
+
+    function renderDetailGrid(match, cond) {
+      var grid = document.getElementById('detailGrid');
+      grid.innerHTML =
+        '<div class="detail-row"><div class="detail-key">Brand</div><div class="detail-val">' + escHtml(match.brand || '—') + '</div></div>'
+        + '<div class="detail-row"><div class="detail-key">Model</div><div class="detail-val">' + escHtml(match.model || '—') + '</div></div>'
+        + '<div class="detail-row"><div class="detail-key">Color</div><div class="detail-val">' + escHtml(selectedAttributes.color || match.detectedColor || '—') + '</div></div>'
+        + '<div class="detail-row"><div class="detail-key">Leather</div><div class="detail-val">' + escHtml(selectedAttributes.leather || match.detectedLeather || '—') + '</div></div>'
+        + '<div class="detail-row"><div class="detail-key">Hardware</div><div class="detail-val">' + escHtml(selectedAttributes.hardware || match.detectedHardware || '—') + '</div></div>'
+        + '<div class="detail-row"><div class="detail-key">Size</div><div class="detail-val">' + escHtml(selectedAttributes.size || match.detectedSize || '—') + '</div></div>'
+        + '<div class="detail-row"><div class="detail-key">Year</div><div class="detail-val">' + escHtml(selectedAttributes.year || match.detectedYear || '—') + '</div></div>'
+        + '<div class="detail-row"><div class="detail-key">Special</div><div class="detail-val">' + escHtml(selectedAttributes.special || match.specialNotes || 'Standard') + '</div></div>'
+        + '<div class="detail-row"><div class="detail-key">Condition</div><div class="detail-val">' + escHtml(cond) + '</div></div>';
+    }
+
+    function renderChart(baseVal) {
+      var bars = document.getElementById('chartBars');
+      var labels = document.getElementById('chartLabels');
+      bars.innerHTML = labels.innerHTML = '';
+      var fullMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var data = fullMonths.map(function (_, i) {
+        var variance = (Math.random() - 0.5) * 0.12;
+        return Math.round(baseVal * (1 + variance * (i / 11)));
+      });
+      var max = Math.max.apply(null, data) || 1;
+      data.forEach(function (v, i) {
+        var bar = document.createElement('div');
+        bar.className = 'c-bar' + (i === data.length - 1 ? ' latest' : '');
+        bar.style.height = Math.round((v / max) * 100) + '%';
+        bar.title = '$' + v.toLocaleString();
+        bars.appendChild(bar);
+        var lbl = document.createElement('div');
+        lbl.className = 'c-label';
+        lbl.textContent = fullMonths[i];
+        labels.appendChild(lbl);
+      });
+    }
+
+    function resetApp() {
+      photos = [];
+      currentMatches = [];
+      selectedMatchIdx = null;
+      selectedAttributes = {};
+      hideError();
+      renderSlots();
+      updateSteps(1);
+      show('phase-upload');
+    }
+
+    renderSlots();
+  </script>
 </body>
+
 </html>
