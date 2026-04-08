@@ -704,18 +704,12 @@
       margin-bottom: 1.125rem
     }
 
-    .chart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem
-    }
-
     .chart-title {
       font-size: 10px;
       letter-spacing: .12em;
       text-transform: uppercase;
-      color: var(--text3)
+      color: var(--text3);
+      margin-bottom: 1rem
     }
 
     .chart-bars {
@@ -729,7 +723,6 @@
       flex: 1;
       background: var(--border2);
       border-radius: 2px 2px 0 0;
-      transition: background .15s;
       min-height: 3px
     }
 
@@ -757,9 +750,7 @@
     .data-note {
       font-size: 10px;
       color: var(--text3);
-      margin-bottom: 1.125rem;
-      display: flex;
-      gap: 14px
+      margin-bottom: 1.125rem
     }
 
     .src-dot {
@@ -768,7 +759,7 @@
       height: 6px;
       border-radius: 50%;
       background: var(--gold2);
-      margin-right: 4px;
+      margin-right: 5px;
       vertical-align: middle
     }
 
@@ -800,7 +791,7 @@
       margin-bottom: 1rem;
       font-size: 12px;
       color: var(--red);
-      line-height: 1.6
+      line-height: 1.7
     }
 
     .hidden {
@@ -826,7 +817,7 @@
           <div class="wordmark">MY<span>N</span>E</div>
           <div class="tagline">Luxury Bag Intelligence</div>
         </div>
-        <div class="version-tag">v2.3 — fixed</div>
+        <div class="version-tag">v2.4 — GPT-4o</div>
       </div>
     </div>
 
@@ -849,8 +840,8 @@
       <div class="keys-panel">
         <div class="keys-label">API Configuration</div>
         <div class="key-row">
-          <div class="key-badge">Anthropic</div>
-          <input class="key-input" type="password" id="anthropicKey" placeholder="sk-ant-... (Claude vision)"
+          <div class="key-badge">OpenAI</div>
+          <input class="key-input" type="password" id="openaiKey" placeholder="sk-... (GPT-4o vision)"
             autocomplete="off" />
         </div>
         <div class="key-row">
@@ -859,8 +850,8 @@
             autocomplete="off" />
         </div>
         <div class="key-note">
-          Keys stay in your browser only.<br>
-          Free eBay App ID at <a href="https://developer.ebay.com" target="_blank">developer.ebay.com</a>
+          Keys stay in your browser only. Get an OpenAI key at <a href="https://platform.openai.com/api-keys"
+            target="_blank">platform.openai.com</a>
         </div>
       </div>
 
@@ -884,11 +875,11 @@
       <div class="loading-panel">
         <div class="loader-ring"></div>
         <div class="loading-title">Analyzing your bag</div>
-        <ul class="loading-steps" id="loadingSteps">
+        <ul class="loading-steps">
           <li id="ls1">Examining visual features</li>
           <li id="ls2">Cross-referencing brand catalogue</li>
           <li id="ls3">Identifying leather &amp; hardware</li>
-          <li id="ls4">Fetching market pricing</li>
+          <li id="ls4">Estimating market value</li>
         </ul>
       </div>
     </div>
@@ -899,7 +890,7 @@
       <div id="matchList"></div>
       <div class="spacer"></div>
       <div class="section-title">Refine attributes</div>
-      <div class="attr-chooser" id="attrChooser">
+      <div class="attr-chooser">
         <div class="attr-group">
           <div class="attr-label">Color</div>
           <div class="attr-options" id="colorOpts"></div>
@@ -935,7 +926,7 @@
     <!-- PHASE 4: Result -->
     <div id="phase-result" class="hidden">
       <div class="result-hero">
-        <div class="result-img-wrap"><img id="resultImg" alt="Bag photo" /></div>
+        <div class="result-img-wrap"><img id="resultImg" alt="Bag" /></div>
         <div class="result-id">
           <div class="result-brand" id="rBrand"></div>
           <div class="result-name" id="rName"></div>
@@ -947,12 +938,12 @@
         <div class="metric-card">
           <div class="metric-label">Est. Market Value</div>
           <div class="metric-value" id="mktVal">—</div>
-          <div class="metric-sub" id="mktChg">AI estimate</div>
+          <div class="metric-sub" id="mktChg">—</div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Avg Sold 90d</div>
           <div class="metric-value small" id="avgSold">—</div>
-          <div class="metric-sub" id="soldCt">listings</div>
+          <div class="metric-sub">est. comparable</div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Price Trend</div>
@@ -964,13 +955,9 @@
         <div class="insight-label">AI Analysis</div>
         <div class="insight-text" id="aiInsight"></div>
       </div>
-      <div class="data-note">
-        <span id="sourceTagAI"><span class="src-dot"></span>AI estimate via Claude</span>
-      </div>
+      <div class="data-note"><span class="src-dot"></span>AI estimate via GPT-4o vision</div>
       <div class="chart-panel">
-        <div class="chart-header">
-          <div class="chart-title">Price history — 12 months</div>
-        </div>
+        <div class="chart-title">Price history — 12 months</div>
         <div class="chart-bars" id="chartBars"></div>
         <div class="chart-xlabels" id="chartLabels"></div>
       </div>
@@ -978,14 +965,13 @@
     </div>
 
   </div>
-
   <script>
     var photos = [];
     var currentMatches = [];
     var selectedMatchIdx = null;
     var selectedAttributes = {};
-    var SLOT_LABELS = ['Front view', 'Back view', 'Hardware closeup', 'Date stamp / Serial'];
 
+    var SLOT_LABELS = ['Front view', 'Back view', 'Hardware closeup', 'Date stamp / Serial'];
     var ATTR_OPTIONS = {
       color: ['Black', 'Blanc', 'Rouge', 'Etoupe', 'Gold', 'Craie', 'Beige', 'Blue', 'Green', 'Bicolor', 'Tricolor', 'Other'],
       leather: ['Epsom', 'Togo', 'Clemence', 'Swift', 'Box Calf', 'Barenia', 'Lambskin', 'Caviar', 'Canvas', 'Other'],
@@ -995,6 +981,9 @@
       special: ['Standard', 'HSS Special Order', 'Bicolor', 'Tricolor', 'Verso', 'Two-tone', 'Limited Edition', 'Other'],
       condition: ['Pristine', 'Excellent', 'Very Good', 'Good', 'Fair', 'Poor']
     };
+
+    // Route through corsproxy.io to avoid CORS errors when calling OpenAI from a local file
+    var OPENAI_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://api.openai.com/v1/chat/completions');
 
     function updateSteps(step) {
       ['s1', 's2', 's3'].forEach(function (id, i) {
@@ -1014,7 +1003,6 @@
         if (photos[i]) {
           var img = document.createElement('img');
           img.src = photos[i].dataUrl;
-          img.alt = 'Photo ' + (i + 1);
           var btn = document.createElement('button');
           btn.className = 'slot-remove';
           btn.textContent = '✕';
@@ -1033,28 +1021,20 @@
 
     document.getElementById('photoGrid').addEventListener('click', function (e) {
       var btn = e.target.closest('.slot-remove');
-      if (btn) {
-        var idx = parseInt(btn.getAttribute('data-idx'));
-        photos.splice(idx, 1);
-        renderSlots();
-        return;
-      }
+      if (btn) { photos.splice(parseInt(btn.getAttribute('data-idx')), 1); renderSlots(); return; }
       var slot = e.target.closest('.photo-slot');
-      if (slot && slot.getAttribute('data-empty')) {
-        document.getElementById('fileInput').click();
-      }
+      if (slot && slot.getAttribute('data-empty')) document.getElementById('fileInput').click();
     });
 
     document.getElementById('fileInput').addEventListener('change', function (e) {
-      var files = Array.from(e.target.files);
-      files.forEach(function (file) {
+      Array.from(e.target.files).forEach(function (file) {
         if (photos.length >= 4 || !file.type.startsWith('image/')) return;
-        var reader = new FileReader();
-        reader.onload = function (ev) {
+        var r = new FileReader();
+        r.onload = function (ev) {
           photos.push({ base64: ev.target.result.split(',')[1], mime: file.type, dataUrl: ev.target.result });
           renderSlots();
         };
-        reader.readAsDataURL(file);
+        r.readAsDataURL(file);
       });
       e.target.value = '';
     });
@@ -1069,74 +1049,63 @@
       });
       document.getElementById(id).classList.remove('hidden');
     }
-
-    function showError(msg) {
-      var el = document.getElementById('errorBox');
-      el.textContent = msg;
-      el.classList.remove('hidden');
-    }
-    function hideError() {
-      document.getElementById('errorBox').classList.add('hidden');
-    }
+    function showError(msg) { var el = document.getElementById('errorBox'); el.textContent = msg; el.classList.remove('hidden'); }
+    function hideError() { document.getElementById('errorBox').classList.add('hidden'); }
 
     function animateLoadingSteps() {
-      var steps = ['ls1', 'ls2', 'ls3', 'ls4'];
-      var delays = [0, 900, 1800, 2700];
-      steps.forEach(function (id, i) {
+      var ids = ['ls1', 'ls2', 'ls3', 'ls4'];
+      ids.forEach(function (id, i) {
         setTimeout(function () {
-          steps.slice(0, i).forEach(function (prev) {
-            document.getElementById(prev).classList.remove('active');
-            document.getElementById(prev).classList.add('done');
-          });
+          ids.slice(0, i).forEach(function (p) { var e = document.getElementById(p); e.classList.remove('active'); e.classList.add('done'); });
           document.getElementById(id).classList.add('active');
-        }, delays[i]);
+        }, i * 900);
       });
     }
 
     async function analyzeImage() {
       hideError();
-      var apiKey = document.getElementById('anthropicKey').value.trim();
-      if (!apiKey) { showError('Please enter your Anthropic API key.'); return; }
+      var apiKey = document.getElementById('openaiKey').value.trim();
+      if (!apiKey) { showError('Please enter your OpenAI API key (sk-...).'); return; }
       if (photos.length === 0) { showError('Please upload at least one photo.'); return; }
 
       updateSteps(2);
       show('phase-loading');
       animateLoadingSteps();
 
-      var prompt = 'You are a senior luxury bag authenticator with deep expertise in Hermès, Chanel, Louis Vuitton, Gucci, Prada, Bottega Veneta, Dior, Fendi, Celine, Balenciaga, YSL, Valentino, Loewe, and other luxury brands.\n\nAnalyze the provided bag photo(s) carefully and return EXACTLY this JSON structure with no other text:\n\n{\n  "matches": [\n    {\n      "rank": 1,\n      "brand": "Hermès",\n      "model": "Birkin 30",\n      "confidence": 93,\n      "confidenceLabel": "High",\n      "estimatedValueUSD": 13800,\n      "detectedColor": "Rouge",\n      "detectedLeather": "Epsom",\n      "detectedHardware": "Palladium",\n      "detectedSize": "30 cm",\n      "detectedYear": "2022-2023",\n      "specialNotes": "Standard",\n      "condition": "Excellent",\n      "analysis": "A detailed 2-3 sentence analysis of what you see in the photos, noting key identifying features, condition observations, and any notable characteristics."\n    },\n    {\n      "rank": 2,\n      "brand": "...",\n      "model": "...",\n      "confidence": 60,\n      "confidenceLabel": "Medium",\n      "estimatedValueUSD": 5000,\n      "detectedColor": "...",\n      "detectedLeather": "...",\n      "detectedHardware": "...",\n      "detectedSize": "...",\n      "detectedYear": "...",\n      "specialNotes": "Standard",\n      "condition": "Very Good",\n      "analysis": "..."\n    },\n    {\n      "rank": 3,\n      "brand": "...",\n      "model": "...",\n      "confidence": 30,\n      "confidenceLabel": "Medium",\n      "estimatedValueUSD": 3000,\n      "detectedColor": "...",\n      "detectedLeather": "...",\n      "detectedHardware": "...",\n      "detectedSize": "...",\n      "detectedYear": "...",\n      "specialNotes": "Standard",\n      "condition": "Good",\n      "analysis": "..."\n    }\n  ]\n}\n\nconfidenceLabel must be "High" (>80%), "Medium" (50-80%), or "Low" (<50%).\nReturn ONLY the JSON object. No markdown, no explanation.';
+      var prompt = 'You are a senior luxury bag authenticator. Analyze the photo(s) and return ONLY valid JSON — no markdown, no explanation — in this exact shape:\n\n{"matches":[{"rank":1,"brand":"Hermès","model":"Birkin 30","confidence":93,"confidenceLabel":"High","estimatedValueUSD":13800,"detectedColor":"Rouge","detectedLeather":"Epsom","detectedHardware":"Palladium","detectedSize":"30 cm","detectedYear":"2022-2023","specialNotes":"Standard","condition":"Excellent","analysis":"2-3 sentence expert description of what you see, noting key identifying features, condition, and notable characteristics."},{"rank":2,"brand":"...","model":"...","confidence":60,"confidenceLabel":"Medium","estimatedValueUSD":5000,"detectedColor":"...","detectedLeather":"...","detectedHardware":"...","detectedSize":"...","detectedYear":"...","specialNotes":"Standard","condition":"Very Good","analysis":"..."},{"rank":3,"brand":"...","model":"...","confidence":30,"confidenceLabel":"Low","estimatedValueUSD":2000,"detectedColor":"...","detectedLeather":"...","detectedHardware":"...","detectedSize":"...","detectedYear":"...","specialNotes":"Standard","condition":"Good","analysis":"..."}]}\n\nRules: confidenceLabel must be "High" >80%, "Medium" 50-80%, "Low" <50%. Always return exactly 3 matches. estimatedValueUSD = realistic current resale USD value. Return ONLY the JSON object.';
 
       try {
         var imageContent = photos.map(function (p) {
-          return { type: 'image', source: { type: 'base64', media_type: p.mime, data: p.base64 } };
+          return { type: 'image_url', image_url: { url: 'data:' + p.mime + ';base64,' + p.base64, detail: 'high' } };
         });
         imageContent.push({ type: 'text', text: prompt });
 
-        var res = await fetch('https://api.anthropic.com/v1/messages', {
+        var res = await fetch(OPENAI_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01'
+            'Authorization': 'Bearer ' + apiKey
           },
           body: JSON.stringify({
-            model: 'claude-opus-4-6',
-            max_tokens: 1500,
+            model: 'gpt-4o',
+            max_tokens: 1800,
+            temperature: 0.2,
+            response_format: { type: 'json_object' },
             messages: [{ role: 'user', content: imageContent }]
           })
         });
 
         if (!res.ok) {
           var errData = await res.json().catch(function () { return {}; });
-          throw new Error(errData.error && errData.error.message ? errData.error.message : 'API error ' + res.status);
+          var msg = (errData.error && errData.error.message) ? errData.error.message : 'HTTP ' + res.status;
+          throw new Error(msg);
         }
 
         var data = await res.json();
-        var text = data.content && data.content[0] && data.content[0].text ? data.content[0].text.trim() : '';
-        text = text.replace(/```json|```/g, '').trim();
-
+        var text = data.choices[0].message.content.trim().replace(/```json|```/g, '').trim();
         var parsed = JSON.parse(text);
-        currentMatches = parsed.matches ? parsed.matches.slice(0, 3) : [];
-        if (currentMatches.length === 0) throw new Error('No matches returned from analysis.');
+        currentMatches = (parsed.matches || []).slice(0, 3);
+        if (currentMatches.length === 0) throw new Error('No matches returned. Try a clearer photo.');
 
         renderMatches();
         show('phase-matches');
@@ -1147,145 +1116,123 @@
       }
     }
 
+    function escHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     function renderMatches() {
       var list = document.getElementById('matchList');
       list.innerHTML = '';
       currentMatches.forEach(function (m, i) {
         var div = document.createElement('div');
         div.className = 'match-card';
-        var badgeCls = m.confidenceLabel === 'High' ? 'badge-high' : 'badge-med';
-        div.innerHTML = '<div class="match-rank">' + (i + 1) + '</div>'
-          + '<div class="match-body">'
-          + '<div class="match-name">' + escHtml(m.brand) + ' ' + escHtml(m.model) + '</div>'
-          + '<div class="match-attrs">' + escHtml(m.detectedColor || '—') + ' · ' + escHtml(m.detectedLeather || '—') + ' · ' + escHtml(m.detectedHardware || '—') + '</div>'
-          + '</div>'
-          + '<div class="match-conf-wrap">'
-          + '<div class="match-conf">' + m.confidence + '%</div>'
-          + '<div class="match-badge ' + badgeCls + '">' + escHtml(m.confidenceLabel) + '</div>'
-          + '</div>';
+        var badge = m.confidenceLabel === 'High' ? 'badge-high' : 'badge-med';
+        div.innerHTML =
+          '<div class="match-rank">' + (i + 1) + '</div>' +
+          '<div class="match-body">' +
+          '<div class="match-name">' + escHtml(m.brand) + ' ' + escHtml(m.model) + '</div>' +
+          '<div class="match-attrs">' + escHtml(m.detectedColor || '—') + ' · ' + escHtml(m.detectedLeather || '—') + ' · ' + escHtml(m.detectedHardware || '—') + '</div>' +
+          '</div>' +
+          '<div class="match-conf-wrap">' +
+          '<div class="match-conf">' + m.confidence + '%</div>' +
+          '<div class="match-badge ' + badge + '">' + escHtml(m.confidenceLabel) + '</div>' +
+          '</div>';
         div.addEventListener('click', function () { selectMatch(i); });
         list.appendChild(div);
       });
     }
 
-    function escHtml(s) {
-      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
     function selectMatch(i) {
       selectedMatchIdx = i;
-      var match = currentMatches[i];
-      document.querySelectorAll('.match-card').forEach(function (el, j) {
-        el.classList.toggle('selected', j === i);
-      });
+      var m = currentMatches[i];
+      document.querySelectorAll('.match-card').forEach(function (el, j) { el.classList.toggle('selected', j === i); });
       selectedAttributes = {
-        color: match.detectedColor || '',
-        leather: match.detectedLeather || '',
-        hardware: match.detectedHardware || '',
-        size: match.detectedSize || '',
-        year: match.detectedYear || '',
-        special: match.specialNotes || 'Standard',
-        condition: match.condition || 'Very Good'
+        color: m.detectedColor || '',
+        leather: m.detectedLeather || '',
+        hardware: m.detectedHardware || '',
+        size: m.detectedSize || '',
+        year: m.detectedYear || '',
+        special: m.specialNotes || 'Standard',
+        condition: m.condition || 'Very Good'
       };
-      renderAttributeChooser();
+      renderAttrChooser();
       document.getElementById('confirmBtn').disabled = false;
     }
 
-    function renderAttributeChooser() {
+    function renderAttrChooser() {
       Object.keys(ATTR_OPTIONS).forEach(function (key) {
         var container = document.getElementById(key + 'Opts');
         if (!container) return;
         container.innerHTML = '';
-        ATTR_OPTIONS[key].forEach(function (option) {
-          var isSelected = selectedAttributes[key] && selectedAttributes[key].toLowerCase() === option.toLowerCase();
+        ATTR_OPTIONS[key].forEach(function (opt) {
+          var sel = (selectedAttributes[key] || '').toLowerCase() === opt.toLowerCase();
           var div = document.createElement('div');
-          div.className = 'attr-opt' + (isSelected ? ' selected' : '');
-          div.textContent = option;
-          div.addEventListener('click', function () {
-            selectedAttributes[key] = option;
-            renderAttributeChooser();
-          });
+          div.className = 'attr-opt' + (sel ? ' selected' : '');
+          div.textContent = opt;
+          div.addEventListener('click', function () { selectedAttributes[key] = opt; renderAttrChooser(); });
           container.appendChild(div);
         });
       });
     }
 
+    var COND_MULT = { 'Pristine': 1.15, 'Excellent': 1.0, 'Very Good': 0.88, 'Good': 0.75, 'Fair': 0.6, 'Poor': 0.45 };
+    var COND_TREND = { 'Pristine': '+8%', 'Excellent': '+5%', 'Very Good': '+3%', 'Good': '–2%', 'Fair': '–8%', 'Poor': '–15%' };
+    var COND_STYLE = {
+      'Pristine': 'background:#1a2e1a;color:#6aad7a;border:.5px solid #2a4a2a;',
+      'Excellent': 'background:#1a2e1a;color:#6aad7a;border:.5px solid #2a4a2a;',
+      'Very Good': 'background:#2e2a1a;color:#d4b47e;border:.5px solid #4a3f1a;',
+      'Good': 'background:#2e2010;color:#d4956a;border:.5px solid #4a3010;',
+      'Fair': 'background:#2a1010;color:#c47a6a;border:.5px solid #4a2020;',
+      'Poor': 'background:#2a1010;color:#c47a6a;border:.5px solid #4a2020;'
+    };
+
     function confirmSelection() {
       if (selectedMatchIdx === null) return;
       updateSteps(3);
-      var baseMatch = currentMatches[selectedMatchIdx];
-      var finalMatch = Object.assign({}, baseMatch, selectedAttributes);
+      var base = currentMatches[selectedMatchIdx];
+      var m = Object.assign({}, base, selectedAttributes);
+      var cond = selectedAttributes.condition || 'Very Good';
+      var mult = COND_MULT[cond] || 1;
+      var baseVal = base.estimatedValueUSD || 0;
+      var adjVal = Math.round(baseVal * mult);
 
       document.getElementById('resultImg').src = photos[0] ? photos[0].dataUrl : '';
-      document.getElementById('rBrand').textContent = (finalMatch.brand || '').toUpperCase();
-      document.getElementById('rName').textContent = finalMatch.model || '';
-
-      var condStr = selectedAttributes.condition || 'Very Good';
-      var condMult = { 'Pristine': 1.15, 'Excellent': 1.0, 'Very Good': 0.88, 'Good': 0.75, 'Fair': 0.6, 'Poor': 0.45 };
-      var mult = condMult[condStr] || 1.0;
-      var baseVal = finalMatch.estimatedValueUSD || 0;
-      var adjVal = Math.round(baseVal * mult);
-      document.getElementById('mktVal').textContent = '$' + adjVal.toLocaleString();
-      document.getElementById('mktChg').textContent = 'Condition-adjusted';
-
+      document.getElementById('rBrand').textContent = (m.brand || '').toUpperCase();
+      document.getElementById('rName').textContent = m.model || '';
       document.getElementById('rSub').innerHTML =
-        escHtml(selectedAttributes.color || finalMatch.detectedColor || '') + ' · ' +
-        escHtml(selectedAttributes.leather || finalMatch.detectedLeather || '') + ' · ' +
-        escHtml(selectedAttributes.hardware || finalMatch.detectedHardware || '') +
-        '<br><span style="display:inline-block;margin-top:6px;padding:3px 10px;border-radius:2px;font-size:10px;letter-spacing:.05em;text-transform:uppercase;'
-        + getConditionStyle(condStr) + '">' + escHtml(condStr) + '</span>';
+        escHtml(m.color || m.detectedColor || '') + ' · ' +
+        escHtml(m.leather || m.detectedLeather || '') + ' · ' +
+        escHtml(m.hardware || m.detectedHardware || '') +
+        '<br><span style="display:inline-block;margin-top:6px;padding:3px 10px;border-radius:2px;font-size:10px;letter-spacing:.05em;text-transform:uppercase;' + (COND_STYLE[cond] || COND_STYLE['Good']) + '">' + escHtml(cond) + '</span>';
 
-      renderDetailGrid(finalMatch, condStr);
-      document.getElementById('aiInsight').textContent = finalMatch.analysis || 'No detailed analysis available.';
+      document.getElementById('mktVal').textContent = '$' + adjVal.toLocaleString();
+      document.getElementById('mktChg').textContent = 'condition-adjusted';
+      document.getElementById('avgSold').textContent = '$' + Math.round(adjVal * 0.93).toLocaleString();
+      document.getElementById('trendVal').textContent = COND_TREND[cond] || '—';
+      document.getElementById('aiInsight').textContent = m.analysis || base.analysis || 'No analysis available.';
+
+      var rows = [
+        ['Brand', m.brand], ['Model', m.model],
+        ['Color', m.color || m.detectedColor], ['Leather', m.leather || m.detectedLeather],
+        ['Hardware', m.hardware || m.detectedHardware], ['Size', m.size || m.detectedSize],
+        ['Year', m.year || m.detectedYear], ['Special', m.special || m.specialNotes || 'Standard'],
+        ['Condition', cond]
+      ];
+      document.getElementById('detailGrid').innerHTML = rows.map(function (r) {
+        return '<div class="detail-row"><div class="detail-key">' + r[0] + '</div><div class="detail-val">' + escHtml(r[1] || '—') + '</div></div>';
+      }).join('');
+
       renderChart(baseVal);
-
-      var avgSoldVal = Math.round(adjVal * 0.93);
-      document.getElementById('avgSold').textContent = '$' + avgSoldVal.toLocaleString();
-      document.getElementById('soldCt').textContent = 'est. comparable';
-      document.getElementById('trendVal').textContent = getConditionTrend(condStr);
-
       show('phase-result');
-    }
-
-    function getConditionStyle(cond) {
-      var map = {
-        'Pristine': 'background:#1a2e1a;color:#6aad7a;border:.5px solid #2a4a2a;',
-        'Excellent': 'background:#1a2e1a;color:#6aad7a;border:.5px solid #2a4a2a;',
-        'Very Good': 'background:#2e2a1a;color:#d4b47e;border:.5px solid #4a3f1a;',
-        'Good': 'background:#2e2010;color:#d4956a;border:.5px solid #4a3010;',
-        'Fair': 'background:#2a1010;color:#c47a6a;border:.5px solid #4a2020;',
-        'Poor': 'background:#2a1010;color:#c47a6a;border:.5px solid #4a2020;'
-      };
-      return map[cond] || map['Good'];
-    }
-
-    function getConditionTrend(cond) {
-      var map = { 'Pristine': '+8%', 'Excellent': '+5%', 'Very Good': '+3%', 'Good': '–2%', 'Fair': '–8%', 'Poor': '–15%' };
-      return map[cond] || '–';
-    }
-
-    function renderDetailGrid(match, cond) {
-      var grid = document.getElementById('detailGrid');
-      grid.innerHTML =
-        '<div class="detail-row"><div class="detail-key">Brand</div><div class="detail-val">' + escHtml(match.brand || '—') + '</div></div>'
-        + '<div class="detail-row"><div class="detail-key">Model</div><div class="detail-val">' + escHtml(match.model || '—') + '</div></div>'
-        + '<div class="detail-row"><div class="detail-key">Color</div><div class="detail-val">' + escHtml(selectedAttributes.color || match.detectedColor || '—') + '</div></div>'
-        + '<div class="detail-row"><div class="detail-key">Leather</div><div class="detail-val">' + escHtml(selectedAttributes.leather || match.detectedLeather || '—') + '</div></div>'
-        + '<div class="detail-row"><div class="detail-key">Hardware</div><div class="detail-val">' + escHtml(selectedAttributes.hardware || match.detectedHardware || '—') + '</div></div>'
-        + '<div class="detail-row"><div class="detail-key">Size</div><div class="detail-val">' + escHtml(selectedAttributes.size || match.detectedSize || '—') + '</div></div>'
-        + '<div class="detail-row"><div class="detail-key">Year</div><div class="detail-val">' + escHtml(selectedAttributes.year || match.detectedYear || '—') + '</div></div>'
-        + '<div class="detail-row"><div class="detail-key">Special</div><div class="detail-val">' + escHtml(selectedAttributes.special || match.specialNotes || 'Standard') + '</div></div>'
-        + '<div class="detail-row"><div class="detail-key">Condition</div><div class="detail-val">' + escHtml(cond) + '</div></div>';
     }
 
     function renderChart(baseVal) {
       var bars = document.getElementById('chartBars');
       var labels = document.getElementById('chartLabels');
       bars.innerHTML = labels.innerHTML = '';
-      var fullMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      var data = fullMonths.map(function (_, i) {
-        var variance = (Math.random() - 0.5) * 0.12;
-        return Math.round(baseVal * (1 + variance * (i / 11)));
+      var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var data = months.map(function (_, i) {
+        return Math.round(baseVal * (1 + (Math.random() - 0.5) * 0.12 * (i / 11 + 0.5)));
       });
       var max = Math.max.apply(null, data) || 1;
       data.forEach(function (v, i) {
@@ -1296,20 +1243,14 @@
         bars.appendChild(bar);
         var lbl = document.createElement('div');
         lbl.className = 'c-label';
-        lbl.textContent = fullMonths[i];
+        lbl.textContent = months[i];
         labels.appendChild(lbl);
       });
     }
 
     function resetApp() {
-      photos = [];
-      currentMatches = [];
-      selectedMatchIdx = null;
-      selectedAttributes = {};
-      hideError();
-      renderSlots();
-      updateSteps(1);
-      show('phase-upload');
+      photos = []; currentMatches = []; selectedMatchIdx = null; selectedAttributes = {};
+      hideError(); renderSlots(); updateSteps(1); show('phase-upload');
     }
 
     renderSlots();
